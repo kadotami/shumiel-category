@@ -2,4 +2,4 @@
 import sys
 sys.path.insert(0, '/var/www/html')
 
-from word2vec-api import app as application
+from word2vecApi import app as application
