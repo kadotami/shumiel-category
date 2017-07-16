@@ -3,8 +3,8 @@
 from flask import Flask, request, jsonify
 from flask.ext.restful import Resource, Api, reqparse
 from flask_restful.utils import cors
-# from gensim.models.word2vec import Word2Vec as w
-from gensim.models.keyedvectors import KeyedVectors as w
+from gensim.models.word2vec import Word2Vec as w
+# from gensim.models.keyedvectors import KeyedVectors as w
 import argparse
 import base64
 import sys
@@ -105,17 +105,17 @@ api.decorators = [cors.crossdomain(
 def pageNotFound(error):
     return "page not found"
 
-# @app.errorhandler(500)
-# def raiseError(error):
-#     return error
+@app.errorhandler(500)
+def raiseError(error):
+    return error
 
 if __name__ == '__main__':
     global model
     model_path = "./vec.bin"
     binary = True
-    host = "localhost"
+    # host = "localhost"
     path = "/word2vec"
-    port = 5000
+    # port = 5000
     model = w.load_word2vec_format(model_path, binary=binary, unicode_errors='ignore')
     api.add_resource(Category, path+'/category')
     print("starting server")
