@@ -119,5 +119,5 @@ if __name__ == '__main__':
     model = w.load_word2vec_format(model_path, binary=binary, unicode_errors='ignore')
     api.add_resource(Category, path+'/category')
     print("starting server")
-    app.run(host=host, port=port)
+    app.run()
 
