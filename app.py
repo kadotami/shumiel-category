@@ -4,7 +4,6 @@ from flask import Flask, request, jsonify
 from flask.ext.restful import Resource, Api, reqparse
 from flask_restful.utils import cors
 from gensim.models.word2vec import Word2Vec as w
-# from gensim.models.keyedvectors import KeyedVectors as w
 import argparse
 import base64
 import sys
