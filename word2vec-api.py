@@ -32,6 +32,7 @@ class Category(Resource):
             parser.add_argument('query', required=True, help="query cannot be blank!")
             args = parser.parse_args()
             mecab = MeCab.Tagger('-Owakati -d /usr/local/lib/mecab/dic/mecab-ipadic-neologd')
+            # mecab = MeCab.Tagger('-Owakati -d /opt/local/lib/mecab/dic/mecab-ipadic-neologd')
             query = args['query']
             mecab.parse('')
             node = mecab.parseToNode(query)
