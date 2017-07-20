@@ -1,122 +1,64 @@
-#-*- coding: utf-8 -*- 
-
-from flask import Flask, request, jsonify
-from flask.ext.restful import Resource, Api, reqparse
-from flask_restful.utils import cors
+# coding: utf-8
+from flask import Flask, request, jsonify, url_for, abort, Response
+from functools import wraps
 from gensim.models.word2vec import Word2Vec as w
 import argparse
 import base64
 import sys
 import MeCab
 from collections import defaultdict
+from flask_cors import CORS, cross_origin
 
-class Category(Resource):
-    def post(self):
-        try:
-            categories = [
-                u"読書",
-                u"スポーツ",
-                u"ゲーム",
-                u"音楽",
-                u"グルメ",
-                u"旅行",
-                u"アニメ",
-                u"アウトドア",
-                u"健康",
-            ]
-            words = []
-            not_in_model = 0
-            cat_val = defaultdict(lambda: 0)
-            parser = reqparse.RequestParser()
-            parser.add_argument('query', required=True, help="query cannot be blank!")
-            args = parser.parse_args()
-            mecab = MeCab.Tagger('-Owakati -d /usr/local/lib/mecab/dic/mecab-ipadic-neologd')
-            # mecab = MeCab.Tagger('-Owakati -d /opt/local/lib/mecab/dic/mecab-ipadic-neologd')
-            query = args['query']
-            mecab.parse('')
-            node = mecab.parseToNode(query)
-            while node:
-                if node.feature.split(",")[0] == u'名詞':
-                    words.append(node.surface)
-                node = node.next
-            for cat in categories:
-                for word in words:
-                    try:
-                        cat_val[cat] += model.similarity(word, cat)
-                    except:
-                        not_in_model += 1
-                if ((len(words) - not_in_model) != 0):
-                    cat_val[cat] = cat_val[cat]/(len(words) - not_in_model)
-                else:
-                    cat_val[cat] = 0
-            return cat_val
-        except(Exception, e):
-            return e
+model = w.load_word2vec_format('/var/www/html/vec.bin', binary=True, unicode_errors='ignore')
+model.init_sims(replace=True)
 
-    def get(self):
-        try:
-            categories = [
-                u"読書",
-                u"スポーツ",
-                u"ゲーム",
-                u"音楽",
-                u"グルメ",
-                u"旅行",
-                u"アニメ",
-                u"アウトドア",
-                u"健康",
-            ]
-            words = []
-            not_in_model = 0
-            cat_val = defaultdict(lambda: 0)
-            parser = reqparse.RequestParser()
-            parser.add_argument('query', required=True, help="query cannot be blank!")
-            args = parser.parse_args()
-            mecab = MeCab.Tagger('-Owakati -d /usr/local/lib/mecab/dic/mecab-ipadic-neologd')
-            query = args['query']
-            mecab.parse('')
-            node = mecab.parseToNode(query)
-            while node:
-                if node.feature.split(",")[0] == u'名詞':
-                    words.append(node.surface)
-                node = node.next
-            for cat in categories:
-                for word in words:
-                    try:
-                        cat_val[cat] += model.similarity(word, cat)
-                    except:
-                        not_in_model += 1
-                if ((len(words) - not_in_model) != 0):
-                    cat_val[cat] = cat_val[cat]/(len(words) - not_in_model)
-                else:
-                    cat_val[cat] = 0
-            return cat_val
-        except(Exception, e):
-            return e
+app = Flask("app")
 
-app = Flask(__name__)
-api = Api(app)
-api.decorators = [cors.crossdomain(
-    origin="*", headers=['accept', 'Content-Type'],
-    methods=['POST','GET'])]
+@app.route("/")
+def hello():
+    return "Hello, World!"
 
-@app.errorhandler(404)
-def pageNotFound(error):
-    return "page not found"
+@app.route('/category', methods=['POST'])
+@cross_origin()
+def create():
+    if not request.json or not 'query' in request.json:
+        abort(400)
+    query = request.json['query']
+    categories = [
+        u"読書",
+        u"スポーツ",
+        u"ゲーム",
+        u"音楽",
+        u"グルメ",
+        u"旅行",
+        u"アニメ",
+        u"アウトドア",
+        u"健康",
+    ]
+    words = []
+    not_in_model = 0
+    cat_val = defaultdict(lambda: 0)
+    mecab = MeCab.Tagger('-Owakati -d /usr/local/lib/mecab/dic/mecab-ipadic-neologd')
+    #mecab = MeCab.Tagger('-Owakati -d /opt/local/lib/mecab/dic/mecab-ipadic-neologd')
+    mecab.parse('')
+    node = mecab.parseToNode(query)
+    while node:
+        if node.feature.split(",")[0] == u'名詞':
+            words.append(node.surface)
+        node = node.next
+    for cat in categories:
+        for word in words:
+            try:
+                cat_val[cat] += model.similarity(word, cat)
+            except:
+                not_in_model += 1
+        if ((len(words) - not_in_model) != 0):
+            cat_val[cat] = cat_val[cat]/(len(words) - not_in_model)
+        else:
+            cat_val[cat] = 0
 
-@app.errorhandler(500)
-def raiseError(error):
-    return error
+    return jsonify(cat_val), 201
 
-if __name__ == '__main__':
-    global model
-    model_path = "./vec.bin"
-    binary = True
-    # host = "localhost"
-    path = "/word2vec"
-    # port = 5000
-    model = w.load_word2vec_format(model_path, binary=binary, unicode_errors='ignore')
-    api.add_resource(Category, path+'/category')
-    print("starting server")
+if __name__ == "__main__":
     app.run()
 

@@ -1,3 +1,4 @@
 Flask==0.10.1
-Flask-RESTful==0.2.12
+Flask-Cors==2.1.2
 gensim==0.12.3
+numpy==1.12.1
