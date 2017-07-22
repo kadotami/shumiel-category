@@ -13,6 +13,7 @@ model = w.load_word2vec_format('/var/www/html/vec.bin', binary=True, unicode_err
 model.init_sims(replace=True)
 
 app = Flask("app")
+cors = CORS(app)
 
 @app.route("/")
 def hello():
