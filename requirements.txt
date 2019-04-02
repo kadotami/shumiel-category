@@ -1,4 +1,6 @@
-Flask==0.10.1
+Flask==1.0.2
 Flask-Cors==2.1.2
-gensim==0.12.3
-numpy==1.12.1
+gunicorn==19.9.0
+numpy==1.16
+gensim==2.3.0
+mecab-python3==0.996.1
